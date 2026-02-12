@@ -1,19 +1,449 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Markdown from '../components/Markdown.astro';
-
-const explainer = `
-An Astro website can go way beyond static pages - on the right platform.
-
-Netlify supports not only [Streaming SSR](https://docs.astro.build/en/guides/server-side-rendering/#html-streaming) and fast [Edge Middleware](https://docs.astro.build/en/guides/middleware/), but also [on-demand revalidation](https://www.netlify.com/blog/cache-tags-and-purge-api-on-netlify/) and [stale-while-revalidate](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/). 
-Any page or data can be rebuilt only when needed, without site visitors ever getting a performance hit.
-`;
+// src/pages/index.astro
 ---
 
-<Layout title="Welcome to Astro.">
-    <h1 class="mb-10">Netlify Platform Starter for Astro</h1>
-    <Markdown content={explainer} class="mb-10 text-lg" />
-    <p>
-        <a href="https://docs.netlify.com/frameworks/astro/" class="btn btn-lg sm:min-w-64">Read the Docs</a>
-    </p>
-</Layout>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AMS01 - Perfil & Arte IA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+    <canvas id="matrix-bg"></canvas>
+    <div class="overlay"></div>
+
+    <audio id="bg-music" preload="auto"></audio>
+
+    <div class="spotify-widget" id="spotify-widget">
+        <div class="spotify-cover-container" id="album-cover-container">
+            <img src="" id="album-cover" alt="Album Art">
+        </div>
+        
+        <div class="spotify-content">
+            <div class="spotify-info">
+                <span class="song-title" id="track-title">Cargando...</span>
+                <span class="song-artist" id="track-artist">...</span>
+            </div>
+            
+            <div class="spotify-controls">
+                <button id="prev-btn" class="control-btn"><i class="fa-solid fa-backward-step"></i></button>
+                <button id="play-btn" class="control-btn play-pause"><i class="fa-solid fa-play"></i></button>
+                <button id="next-btn" class="control-btn"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+        </div>
+
+        <div class="spotify-visualizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    </div>
+
+    <main class="card profile-card">
+        <div class="avatar-container">
+            <img src="/perfil.jpg" alt="Mi Foto" class="avatar">
+            <div class="status-indicator online" title="En línea"></div>
+        </div>
+
+        <h1>AMS01</h1>
+        
+        <div class="discord-status">
+            <i class="fa-brands fa-discord"></i> Jugando a VS Code
+        </div>
+
+        <div class="social-links">
+            <a href="#" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://www.instagram.com/xunder999?igsh=ZXR3N3luNTh0eWxm" target="_blank">
+                <i class="fa-brands fa-instagram"></i>
+            </a>
+            <a href="#" target="_blank"><i class="fa-brands fa-github"></i></a>
+            <a href="#" target="_blank"><i class="fa-brands fa-twitch"></i></a>
+        </div>
+
+        <div class="scroll-indicator">
+            <p>Galería IA</p>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </main>
+
+    <section class="card gallery-card">
+        <h2><i class="fa-solid fa-robot"></i> Arte Generado por IA</h2>
+        <p class="subtitle">Colección personal de generaciones</p>
+        
+        <div class="gallery-grid">
+            <div class="gallery-item"><img src="/ia1.jpg" alt="Arte IA 1" loading="lazy"></div>
+            <div class="gallery-item"><img src="/ia2.jpg" alt="Arte IA 2" loading="lazy"></div>
+            <div class="gallery-item"><img src="/ia3.jpg" alt="Arte IA 3" loading="lazy"></div>
+            <div class="gallery-item"><img src="/ia4.jpg" alt="Arte IA 4" loading="lazy"></div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2024 AMS01 - Creado con Astro</p>
+    </footer>
+
+    <script>
+        // CONFIGURACIÓN DE CANCIONES
+        const playlist = [
+            {
+                title: "Vibe Coding", 
+                artist: "AMS01 Radio", 
+                file: "/cancion.mp3",       
+                image: "/cover1.jpg"        
+            },
+            {
+                title: "Night City", 
+                artist: "Synthwave Mix", 
+                file: "/cancion2.mp3",
+                image: "/cover2.jpg"
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. MOTOR DE FÍSICAS: AGUJERO NEGRO REALISTA ---
+            const canvas = document.getElementById('matrix-bg');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    let w, h, centerX, centerY;
+                    
+                    // Ajuste de tamaño
+                    const resize = () => {
+                        w = canvas.width = window.innerWidth;
+                        h = canvas.height = window.innerHeight;
+                        centerX = w / 2;
+                        centerY = h / 2;
+                    };
+                    resize();
+                    window.addEventListener('resize', resize);
+
+                    // Caracteres Matrix
+                    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+                    const charArray = chars.split('');
+                    
+                    // Configuración del Agujero Negro
+                    const eventHorizonRadius = 40; // El círculo negro central
+                    const numParticles = 600;      // Cantidad de códigos (ajustar si va lento)
+                    const particles = [];
+
+                    class Particle {
+                        constructor() {
+                            this.reset(true);
+                        }
+
+                        reset(initial = false) {
+                            // Empezar lejos, distribuidos en un disco grande
+                            // Si es inicial, dispersar por toda la pantalla. Si no, nacer en los bordes.
+                            const minSpawn = eventHorizonRadius + 50;
+                            const maxSpawn = Math.max(w, h) * 0.8;
+                            
+                            this.radius = initial 
+                                ? Math.random() * maxSpawn + minSpawn
+                                : maxSpawn;
+
+                            this.angle = Math.random() * Math.PI * 2;
+                            
+                            // Propiedades físicas
+                            // Velocidad tangencial base (giro)
+                            this.velocity = 0.5 + Math.random() * 0.5; 
+                            // Velocidad radial base (caída)
+                            this.inwardSpeed = 0.5 + Math.random() * 0.5;
+                            
+                            this.char = charArray[Math.floor(Math.random() * charArray.length)];
+                            this.size = 10 + Math.random() * 12;
+                            this.color = '#0F0'; // Verde base
+                        }
+
+                        update() {
+                            // 1. Aumentar velocidad angular cuanto más cerca (Conservación momento angular)
+                            // Fórmula simplificada: velocidad / radio
+                            const angularSpeed = (this.velocity * 50) / this.radius;
+                            this.angle += angularSpeed;
+
+                            // 2. Aumentar velocidad de caída (Gravedad)
+                            // Gravedad ~ 1/radio^2, simplificado aquí para efecto visual
+                            const gravity = (200 / this.radius) * this.inwardSpeed;
+                            this.radius -= gravity;
+
+                            // 3. Calcular posición cartesiana
+                            this.x = centerX + Math.cos(this.angle) * this.radius;
+                            this.y = centerY + Math.sin(this.angle) * this.radius;
+
+                            // 4. Glitch aleatorio de carácter
+                            if(Math.random() > 0.9) {
+                                this.char = charArray[Math.floor(Math.random() * charArray.length)];
+                            }
+
+                            // 5. MORIR en el Horizonte de Sucesos
+                            if (this.radius <= eventHorizonRadius) {
+                                this.reset(false);
+                            }
+                        }
+
+                        draw() {
+                            // Efecto visual: Color cambia según cercanía
+                            // Verde lejos -> Blanco brillante cerca del horizonte
+                            if (this.radius < eventHorizonRadius + 100) {
+                                // Brillo intenso cerca del agujero
+                                ctx.fillStyle = '#FFF'; 
+                                ctx.shadowBlur = 15;
+                                ctx.shadowColor = '#0F0';
+                            } else {
+                                // Verde normal
+                                ctx.fillStyle = '#0F0';
+                                ctx.shadowBlur = 0;
+                            }
+
+                            // Tamaño aparente (se estira o encoge)
+                            ctx.font = `${this.size}px monospace`;
+                            ctx.fillText(this.char, this.x, this.y);
+                        }
+                    }
+
+                    // Inicializar
+                    for(let i=0; i<numParticles; i++) {
+                        particles.push(new Particle());
+                    }
+
+                    function animate() {
+                        // Rastro (Trail effect)
+                        // Un alpha bajo (0.1) crea colas largas, perfecto para ver la espiral
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; 
+                        ctx.fillRect(0, 0, w, h);
+
+                        // Dibujar el Horizonte de Sucesos (Círculo negro puro en el centro)
+                        // Esto "tapa" los rastros anteriores en el centro
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, eventHorizonRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = 'black';
+                        ctx.fill();
+                        
+                        // Brillo externo del agujero (Lensing)
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = '#0F0';
+                        ctx.strokeStyle = '#050';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.shadowBlur = 0; // Resetear para el resto
+
+                        // Actualizar partículas
+                        particles.forEach(p => {
+                            p.update();
+                            p.draw();
+                        });
+
+                        requestAnimationFrame(animate);
+                    }
+
+                    animate();
+                }
+            }
+
+            // --- 2. REPRODUCTOR DE MÚSICA (LÓGICA INTACTA) ---
+            const audio = document.getElementById('bg-music');
+            const widget = document.getElementById('spotify-widget');
+            const titleEl = document.getElementById('track-title');
+            const artistEl = document.getElementById('track-artist');
+            const coverEl = document.getElementById('album-cover');
+            const coverContainer = document.getElementById('album-cover-container');
+            const playBtn = document.getElementById('play-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            let currentSongIndex = 0;
+            let isPlaying = false;
+
+            if (audio && widget && titleEl && artistEl && coverEl && playBtn) {
+                audio.volume = 0.5;
+
+                function loadSong(index) {
+                    if (index >= 0 && index < playlist.length) {
+                        const song = playlist[index];
+                        audio.src = song.file;
+                        titleEl.textContent = song.title;
+                        artistEl.textContent = song.artist;
+                        coverEl.src = song.image;
+
+                        if(coverContainer) {
+                            coverContainer.classList.remove('pop-anim');
+                            void coverContainer.offsetWidth; 
+                            coverContainer.classList.add('pop-anim');
+                        }
+                    }
+                }
+
+                function updateBtn() {
+                    const icon = playBtn.querySelector('i');
+                    if (isPlaying) {
+                        widget.classList.add('playing');
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-pause');
+                    } else {
+                        widget.classList.remove('playing');
+                        icon.classList.remove('fa-pause');
+                        icon.classList.add('fa-play');
+                    }
+                }
+
+                function togglePlay() {
+                    if (audio.paused) {
+                        audio.play().then(() => {
+                            isPlaying = true;
+                            updateBtn();
+                        }).catch(() => console.log("Interacción requerida"));
+                    } else {
+                        audio.pause();
+                        isPlaying = false;
+                        updateBtn();
+                    }
+                }
+
+                function nextSong() {
+                    currentSongIndex = (currentSongIndex + 1) % playlist.length;
+                    loadSong(currentSongIndex);
+                    if(isPlaying) audio.play().catch(()=>{});
+                }
+
+                function prevSong() {
+                    currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+                    loadSong(currentSongIndex);
+                    if(isPlaying) audio.play().catch(()=>{});
+                }
+
+                playBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+                nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextSong(); });
+                prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevSong(); });
+                audio.addEventListener('ended', nextSong);
+
+                loadSong(0);
+
+                const safeAutoplay = () => {
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updateBtn();
+                        document.removeEventListener('click', safeAutoplay);
+                        document.removeEventListener('keydown', safeAutoplay);
+                    }).catch(() => {});
+                };
+                safeAutoplay();
+                document.addEventListener('click', safeAutoplay);
+                document.addEventListener('keydown', safeAutoplay);
+            }
+        });
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-color: #000;
+            padding-bottom: 100px;
+        }
+
+        #matrix-bg {
+            position: fixed;
+            top: 0; left: 0; z-index: -2; background: black;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Oscurecemos un poco más para que resalte el centro */
+            background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* WIDGET */
+        .spotify-widget {
+            position: fixed;
+            bottom: 25px; left: 25px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex; align-items: center; gap: 16px;
+            z-index: 1000;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            transition: all 0.3s ease;
+            max-width: 380px; min-width: 300px;
+        }
+        .spotify-widget:hover { border-color: #1DB954; transform: scale(1.02); }
+
+        .spotify-cover-container {
+            width: 65px; height: 65px; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6); flex-shrink: 0;
+        }
+        .spotify-cover-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pop-anim { animation: popIcon 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIcon { 0% { transform: scale(0.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
+        .spotify-content { display: flex; flex-direction: column; flex-grow: 1; gap: 6px; min-width: 0; }
+        .spotify-info { line-height: 1.2; }
+        .song-title { font-weight: 700; font-size: 1.1rem; color: white; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-artist { font-size: 0.85rem; color: #b3b3b3; display: block; }
+
+        .spotify-controls { display: flex; align-items: center; gap: 15px; margin-top: 2px; }
+        .control-btn { background: none; border: none; color: #b3b3b3; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; padding: 2px; display: flex; align-items: center; }
+        .control-btn:hover { color: white; transform: scale(1.15); }
+
+        .spotify-visualizer { display: flex; align-items: flex-end; gap: 3px; height: 15px; margin-left: 8px; margin-bottom: 8px; }
+        .bar { width: 4px; background-color: #1DB954; height: 2px; border-radius: 2px; }
+        .spotify-widget.playing .bar { animation: bounceBars 0.8s infinite ease-in-out; }
+        .spotify-widget.playing .bar:nth-child(1) { animation-delay: 0.0s; }
+        .spotify-widget.playing .bar:nth-child(2) { animation-delay: 0.2s; }
+        .spotify-widget.playing .bar:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounceBars { 0%, 100% { height: 2px; } 50% { height: 18px; } }
+
+        /* ESTILOS GENERALES */
+        .card {
+            background: rgba(20, 20, 20, 0.85); border-radius: 20px; text-align: center;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 90%; max-width: 450px; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            margin-top: 50px; padding: 40px; animation: fadeIn 1s ease-out;
+        }
+        .profile-card { margin-top: 8vh; margin-bottom: 30px; }
+        .gallery-card { padding: 20px; }
+        .gallery-card h2 { font-size: 1.5rem; margin-bottom: 5px; }
+        .subtitle { color: #bbb; font-size: 0.8rem; margin-bottom: 20px; }
+        
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .gallery-item { overflow: hidden; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); transition: transform 0.3s ease; aspect-ratio: 1 / 1; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .gallery-item:hover { transform: scale(1.02); border-color: #ffffff; }
+        .gallery-item:hover img { transform: scale(1.1); }
+
+        .scroll-indicator { margin-top: 30px; color: #888; font-size: 0.9rem; animation: bounce 2s infinite; }
+        .scroll-indicator i { margin-top: 5px; display: block; }
+
+        .avatar-container { position: relative; width: 120px; margin: 0 auto 20px; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #ffffff; }
+        .status-indicator { position: absolute; bottom: 5px; right: 5px; width: 25px; height: 25px; border-radius: 50%; border: 3px solid #1a1a1a; }
+        .online { background-color: #43b581; }
+
+        h1 { margin-bottom: 10px; font-size: 2rem; letter-spacing: 1px; }
+        .discord-status { color: #b9bbbe; margin-bottom: 25px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .social-links { margin-bottom: 30px; display: flex; justify-content: center; gap: 25px; }
+        .social-links a { color: #bbb; font-size: 1.6rem; transition: all 0.3s; }
+        .social-links a:hover { color: white; transform: scale(1.1); }
+        footer { margin-top: 20px; color: #555; font-size: 0.7rem; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 480px) {
+            .spotify-widget { left: 50%; transform: translateX(-50%); bottom: 15px; width: 92%; padding: 12px 15px; }
+        }
+    </style>
+</body>
+</html>
